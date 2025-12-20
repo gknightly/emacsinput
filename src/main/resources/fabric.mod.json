@@ -9,9 +9,10 @@
 	],
 	"contact": {
 		"homepage": "https://modrinth.com/mod/emacsinput",
-		"sources": "https://github.com/gknightly/emacsinput"
+		"sources": "https://github.com/gknightly/emacsinput",
+		"issues": "https://github.com/gknightly/emacsinput/issues"
 	},
-	"license": "CC0-1.0",
+	"license": "GPL-3.0-or-later",
 	"icon": "assets/emacsinput/icon.png",
 	"accessWidener": "emacsinput.accesswidener",
 	"environment": "client",
