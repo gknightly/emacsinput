@@ -1,0 +1,22 @@
+{
+	"required": true,
+	"package": "net.woadwizard.mixin.client",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"EditBoxMixin",
+		"EditBoxAccessor",
+		"EditBoxInvoker",
+		"ChatScreenMixin",
+		"CommandSuggestionsMixin",
+		"MultiLineEditBoxMixin",
+		"MultiLineEditBoxAccessor",
+		"MultilineTextFieldAccessor",
+		"AbstractSignEditScreenMixin",
+		"TextFieldHelperAccessor",
+		"ScreenMixin",
+		"BookEditScreenMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

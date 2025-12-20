@@ -1,0 +1,4 @@
+accessWidener v2 named
+
+# Make StringView accessible for cursor navigation
+accessible class net/minecraft/client/gui/components/MultilineTextField$StringView

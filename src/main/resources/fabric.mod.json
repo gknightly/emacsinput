@@ -1,0 +1,35 @@
+{
+	"schemaVersion": 1,
+	"id": "emacsinput",
+	"version": "${version}",
+	"name": "Emacs Input",
+	"description": "Adds Emacs-style keybindings to Minecraft text input fields.",
+	"authors": [
+		"woadwizard"
+	],
+	"contact": {
+		"sources": "https://github.com/gknightly/emacsinput"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/emacsinput/icon.png",
+	"accessWidener": "emacsinput.accesswidener",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"net.woadwizard.EmacsInputClient"
+		],
+		"modmenu": [
+			"net.woadwizard.config.ModMenuIntegration"
+		]
+	},
+	"mixins": [
+		"emacsinput.client.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.18.2",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*",
+		"cloth-config": "*"
+	}
+}

@@ -1,0 +1,56 @@
+{
+  "text.autoconfig.emacsinput.title": "Emacs Input Settings",
+
+  "text.autoconfig.emacsinput.option.enabled": "Enable Mod",
+  "text.autoconfig.emacsinput.option.enabled.@Tooltip": "Master switch. When disabled, all Emacs keybindings are off.",
+
+  "text.autoconfig.emacsinput.option.commandOverrides": "Command Overrides",
+
+  "text.autoconfig.emacsinput.option.commandOverrides.enabledCommands": "Force Enabled Commands",
+  "text.autoconfig.emacsinput.option.commandOverrides.enabledCommands.@Tooltip": "Commands to force enable, bypassing modifier and category settings. Use Emacs notation: C-f, M-b, C-x C-x, etc.",
+
+  "text.autoconfig.emacsinput.option.commandOverrides.disabledCommands": "Force Disabled Commands",
+  "text.autoconfig.emacsinput.option.commandOverrides.disabledCommands.@Tooltip": "Commands to force disable, even if their category is enabled. Takes precedence over Force Enabled. Use Emacs notation: C-f, M-b, etc.",
+
+  "text.autoconfig.emacsinput.option.keybinds": "Keybinds",
+
+  "text.autoconfig.emacsinput.option.keybinds.ctrlKeybindsEnabled": "Ctrl Keybinds",
+  "text.autoconfig.emacsinput.option.keybinds.ctrlKeybindsEnabled.@Tooltip": "Enable Ctrl+key bindings (C-f, C-b, C-a, C-e, C-k, C-y, etc.).",
+
+  "text.autoconfig.emacsinput.option.keybinds.altKeybindsEnabled": "Alt/Meta Keybinds",
+  "text.autoconfig.emacsinput.option.keybinds.altKeybindsEnabled.@Tooltip": "Enable Alt+key bindings (M-f, M-b, M-d, M-w, M-y, M-t).",
+
+  "text.autoconfig.emacsinput.option.keybinds.navigationEnabled": "Navigation",
+  "text.autoconfig.emacsinput.option.keybinds.navigationEnabled.@Tooltip": "C-f, C-b (char), M-f, M-b (word), C-a, C-e (line), C-n, C-p (line/history).",
+
+  "text.autoconfig.emacsinput.option.keybinds.killRingEnabled": "Kill Ring",
+  "text.autoconfig.emacsinput.option.keybinds.killRingEnabled.@Tooltip": "C-k, C-u (line), C-w, M-w (region), C-y, M-y (yank), C-d, M-d, M-Backspace (delete/kill).",
+
+  "text.autoconfig.emacsinput.option.keybinds.undoEnabled": "Undo",
+  "text.autoconfig.emacsinput.option.keybinds.undoEnabled.@Tooltip": "C-/ to undo.",
+
+  "text.autoconfig.emacsinput.option.keybinds.transposeEnabled": "Transpose",
+  "text.autoconfig.emacsinput.option.keybinds.transposeEnabled.@Tooltip": "C-t (chars), M-t (words).",
+
+  "text.autoconfig.emacsinput.option.keybinds.markEnabled": "Mark/Selection",
+  "text.autoconfig.emacsinput.option.keybinds.markEnabled.@Tooltip": "C-Space (set mark), C-x C-x (exchange point and mark).",
+
+  "text.autoconfig.emacsinput.option.historySearch": "History Search",
+
+  "text.autoconfig.emacsinput.option.historySearch.enabled": "Enable History Search",
+  "text.autoconfig.emacsinput.option.historySearch.enabled.@Tooltip": "C-r/C-s for incremental history search in chat.",
+
+  "text.autoconfig.emacsinput.option.historySearch.caseSensitive": "Case Sensitive",
+  "text.autoconfig.emacsinput.option.historySearch.caseSensitive.@Tooltip": "Make history search case-sensitive.",
+
+  "text.autoconfig.emacsinput.option.options": "Options",
+
+  "text.autoconfig.emacsinput.option.options.killWordOnCw": "Kill Word on C-w",
+  "text.autoconfig.emacsinput.option.options.killWordOnCw.@Tooltip": "When no text is selected, C-w kills backward to whitespace. When disabled, C-w only kills the selected region.",
+
+  "text.autoconfig.emacsinput.option.options.altKeyBehavior": "Alt/Option Key Behavior",
+  "text.autoconfig.emacsinput.option.options.altKeyBehavior.@Tooltip": "How Option key affects character input. Block All: always block special chars. Block When Bound: only block if key has an Emacs binding.",
+
+  "text.autoconfig.emacsinput.enum.altKeyBehavior.BLOCK_ALL": "Block All",
+  "text.autoconfig.emacsinput.enum.altKeyBehavior.BLOCK_WHEN_BOUND": "Block When Bound"
+}
