@@ -6,12 +6,12 @@ input fields, including chat, signs, command blocks, and books.
 ## Scope
 
 This mod is **client-side only** and affects all text input fields in Minecraft:
-- Chat and command input
-- Signs and hanging signs
-- Books and quills
-- Command blocks
-- Anvil naming
-- Any other standard text field
+ -  Chat and command input
+ -  Signs and hanging signs
+ -  Books and quills
+ -  Command blocks
+ -  Anvil naming
+ -  Any other standard text field
 
 ## Keybindings
 
@@ -63,31 +63,32 @@ This mod is **client-side only** and affects all text input fields in Minecraft:
 | `C-x C-x` | Exchange point and mark |  
 | `C-g` | Cancel selection / deactivate mark |
 
-### History Search (Chat Only)
+### Chat History Search
 
 | Keybind | Action |  
 |---------|--------|  
 | `C-r` | Search backward through chat history |  
 | `C-s` | Search forward through chat history |
 
-**Note:** `C-` denotes Ctrl (or Cmd on macOS), `M-` denotes Alt (or Option on macOS).
+**Note:** `C-` denotes Ctrl, `M-` denotes Alt (or Option on macOS).
 
 ## Configuration
 
-Configuration is available through Mod Menu. Options include:
-- Enable/disable the entire mod
-- Toggle Ctrl or Alt keybinds independently
-- Enable/disable specific feature categories (navigation, kill ring, undo, transpose, mark)
-- Force-enable or force-disable individual commands
-- History search settings (case sensitivity)
-- Alt key behavior (block all input vs. block only when bound)
+Configuration is available through Mod Menu (or by editing the raw json at
+config/emacsinput:
+ -  Enable/disable entire mod
+ -  Toggle Ctrl or Alt keybinds independently
+ -  Enable/disable specific feature categories (navigation, kill ring, undo, transpose, mark)
+ -  Force-enable or force-disable individual commands
+ -  History search settings (case sensitivity)
+ -  Alt key behavior (block all input vs. block only when bound)
 
 ## Dependencies
 
 **Required:**
-- [Fabric Loader](https://fabricmc.net/)
-- [Fabric API](https://modrinth.com/mod/fabric-api)
-- [Cloth Config](https://modrinth.com/mod/cloth-config)
+ -  [Fabric Loader](https://fabricmc.net/)
+ -  [Fabric API](https://modrinth.com/mod/fabric-api)
+ -  [Cloth Config](https://modrinth.com/mod/cloth-config)
 
 **Optional:**
-- [Mod Menu](https://modrinth.com/mod/modmenu) (for in-game configuration access)
+ -  [Mod Menu](https://modrinth.com/mod/modmenu) (for in-game configuration access)

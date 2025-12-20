@@ -8,6 +8,7 @@
 		"woadwizard"
 	],
 	"contact": {
+		"homepage": "https://modrinth.com/mod/emacsinput",
 		"sources": "https://github.com/gknightly/emacsinput"
 	},
 	"license": "CC0-1.0",
