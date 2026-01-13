@@ -139,7 +139,7 @@ public final class EmacsKeyHandler {
     }
 
     /**
-     * Handle character typed - blocks Alt-modified characters based on config.
+     * Handle character typed - blocks modified characters that would interfere with commands.
      * @param keyCode the key code, or -1 if not available
      * @return true if the character should be blocked
      */
@@ -148,7 +148,14 @@ public final class EmacsKeyHandler {
             return false;
         }
 
+        boolean ctrlHeld = (modifiers & GLFW.GLFW_MOD_CONTROL) != 0;
         boolean altHeld = (modifiers & GLFW.GLFW_MOD_ALT) != 0;
+
+        // Block Ctrl-modified printable characters (prevents e.g. Ctrl+/ typing '/')
+        if (ctrlHeld && ConfigHelper.isCtrlEnabled()) {
+            return true;
+        }
+
         if (!altHeld) {
             return false;
         }

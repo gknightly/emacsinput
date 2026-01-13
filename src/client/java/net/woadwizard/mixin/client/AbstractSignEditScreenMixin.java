@@ -69,7 +69,7 @@ public abstract class AbstractSignEditScreenMixin {
     @Inject(method = "charTyped", at = @At("HEAD"), cancellable = true)
     private void onCharTyped(CharacterEvent event, CallbackInfoReturnable<Boolean> cir) {
         if (EmacsKeyHandler.shouldBlockChar(event.modifiers())) {
-            LOGGER.debug("Blocking Alt character: codepoint={}", event.codepoint());
+            LOGGER.debug("Blocking modified character: codepoint={}", event.codepoint());
             cir.setReturnValue(false);
         }
     }

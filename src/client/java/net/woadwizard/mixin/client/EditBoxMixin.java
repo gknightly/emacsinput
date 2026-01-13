@@ -50,9 +50,9 @@ public abstract class EditBoxMixin {
             return;
         }
 
-        // Block Alt-modified characters (macOS sends special chars)
+        // Block Ctrl/Alt-modified characters that would interfere with keybinds
         if (EmacsKeyHandler.shouldBlockChar(event.modifiers())) {
-            LOGGER.debug("Blocking Alt character: codepoint={}", event.codepoint());
+            LOGGER.debug("Blocking modified character: codepoint={}", event.codepoint());
             cir.setReturnValue(false);
         }
     }

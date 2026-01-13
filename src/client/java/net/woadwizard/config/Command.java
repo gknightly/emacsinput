@@ -250,6 +250,14 @@ public enum Command {
     }
 
     /**
+     * Check if a Ctrl+key combination is bound to any command.
+     */
+    public static boolean isCtrlKeyBound(int keyCode) {
+        Command cmd = CTRL_COMMANDS.get(keyCode);
+        return cmd != null && cmd.isEnabled();
+    }
+
+    /**
      * Modifier type for commands.
      */
     public enum Modifier {
