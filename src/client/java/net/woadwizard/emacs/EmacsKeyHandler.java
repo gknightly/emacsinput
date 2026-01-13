@@ -86,6 +86,15 @@ public final class EmacsKeyHandler {
 
         // Try Ctrl commands
         if (ctrlHeld && ConfigHelper.isCtrlEnabled()) {
+            // Special case: C-S-/ for redo (shift distinguishes from C-/ undo)
+            if (shiftHeld && keyCode == GLFW.GLFW_KEY_SLASH) {
+                if (Command.CTRL_SHIFT_SLASH.isEnabled() && Command.CTRL_SHIFT_SLASH.hasAction()) {
+                    LOGGER.trace("C-S-/: executing redo");
+                    Command.Result cmdResult = Command.CTRL_SHIFT_SLASH.execute(field, selecting);
+                    return toHandlerResult(cmdResult);
+                }
+            }
+
             Command cmd = Command.fromCtrlKey(keyCode);
             if (cmd != null && cmd.isEnabled() && cmd.hasAction()) {
                 LOGGER.trace("{}: executing", cmd.getName());

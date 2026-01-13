@@ -42,18 +42,27 @@ This mod is **client-side only** and affects all text input fields in Minecraft:
 | `M-w` | Copy region to kill ring |  
 | `M-y` | Cycle through kill ring (after yank) |
 
-### Undo
+### Undo/Redo
 
-| Keybind | Action |  
-|---------|--------|  
+| Keybind | Action |
+|---------|--------|
 | `C-/` | Undo last change |
+| `C-S-/` | Redo |
 
 ### Transpose
 
-| Keybind | Action |  
-|---------|--------|  
-| `C-t` | Transpose characters |  
+| Keybind | Action |
+|---------|--------|
+| `C-t` | Transpose characters |
 | `M-t` | Transpose words |
+
+### Case Conversion
+
+| Keybind | Action |
+|---------|--------|
+| `M-u` | Uppercase word |
+| `M-l` | Lowercase word |
+| `M-c` | Capitalize word |
 
 ### Mark and Selection
 
@@ -70,7 +79,7 @@ This mod is **client-side only** and affects all text input fields in Minecraft:
 | `C-r` | Search backward through chat history |  
 | `C-s` | Search forward through chat history |
 
-**Note:** `C-` denotes Ctrl, `M-` denotes Alt (or Option on macOS).
+**Note:** `C-` denotes Ctrl, `M-` denotes Alt (or Option on macOS), `S-` denotes Shift.
 
 ## Configuration
 
@@ -78,7 +87,7 @@ Configuration is available through Mod Menu (or by editing the raw json at
 config/emacsinput:
  -  Enable/disable entire mod
  -  Toggle Ctrl or Alt keybinds independently
- -  Enable/disable specific feature categories (navigation, kill ring, undo, transpose, mark)
+ -  Enable/disable specific feature categories (navigation, kill ring, undo, transpose, case conversion, mark)
  -  Force-enable or force-disable individual commands
  -  History search settings (case sensitivity)
  -  Alt key behavior (block all input vs. block only when bound)

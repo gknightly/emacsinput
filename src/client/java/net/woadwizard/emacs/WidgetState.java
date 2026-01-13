@@ -12,6 +12,7 @@ public class WidgetState {
     private boolean cxPrefixActive = false;
     private long cxPrefixTimestamp = 0;
     private boolean undoing = false;
+    private boolean redoing = false;
 
     /**
      * Activate the mark at the current cursor position.
@@ -86,6 +87,7 @@ public class WidgetState {
         markActive = false;
         cxPrefixActive = false;
         undoing = false;
+        redoing = false;
     }
 
     /**
@@ -101,5 +103,20 @@ public class WidgetState {
      */
     public void setUndoing(boolean undoing) {
         this.undoing = undoing;
+    }
+
+    /**
+     * Check if a redo operation is currently in progress.
+     */
+    public boolean isRedoing() {
+        return redoing;
+    }
+
+    /**
+     * Set whether a redo operation is in progress.
+     * While true, state changes won't be recorded in the undo history.
+     */
+    public void setRedoing(boolean redoing) {
+        this.redoing = redoing;
     }
 }

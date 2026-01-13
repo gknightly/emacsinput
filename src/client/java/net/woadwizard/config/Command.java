@@ -3,6 +3,7 @@ package net.woadwizard.config;
 import net.woadwizard.KillRing;
 import net.woadwizard.UndoManager;
 import net.woadwizard.emacs.EmacsKeyHandler;
+import net.woadwizard.emacs.GraphemeUtils;
 import net.woadwizard.emacs.TextFieldAdapter;
 import net.woadwizard.emacs.TextOperations;
 import net.woadwizard.emacs.WidgetState;
@@ -58,9 +59,13 @@ public enum Command {
     CTRL_D("C-d", Modifier.CTRL, Category.KILL_RING, GLFW.GLFW_KEY_D,
            (field, selecting) -> {
                WidgetState state = field.getState();
-               if (field.getCursor() < field.getText().length()) {
-                   UndoManager.recordState(field.getWidget(), state, field.getText(), field.getCursor());
-                   field.deleteChars(1);
+               String text = field.getText();
+               int cursor = field.getCursor();
+               if (cursor < text.length()) {
+                   UndoManager.recordState(field.getWidget(), state, text, cursor);
+                   // Delete one grapheme (handles emoji and combining characters)
+                   int nextBoundary = GraphemeUtils.nextGraphemeBoundary(text, cursor);
+                   field.deleteChars(nextBoundary - cursor);
                }
                state.deactivateMark();
                return Result.HANDLED;
@@ -91,9 +96,12 @@ public enum Command {
     META_Y("M-y", Modifier.ALT, Category.KILL_RING, GLFW.GLFW_KEY_Y,
            (field, selecting) -> { TextOperations.yankPop(field); return Result.HANDLED; }),
 
-    // Undo
+    // Undo/Redo
     CTRL_SLASH("C-/", Modifier.CTRL, Category.UNDO, GLFW.GLFW_KEY_SLASH,
            (field, selecting) -> { TextOperations.performUndo(field); return Result.HANDLED; }),
+
+    CTRL_SHIFT_SLASH("C-S-/", Modifier.CTRL, Category.UNDO, GLFW.GLFW_KEY_SLASH,
+           (field, selecting) -> { TextOperations.performRedo(field); return Result.HANDLED; }),
 
     // Transpose
     CTRL_T("C-t", Modifier.CTRL, Category.TRANSPOSE, GLFW.GLFW_KEY_T,
@@ -101,6 +109,16 @@ public enum Command {
 
     META_T("M-t", Modifier.ALT, Category.TRANSPOSE, GLFW.GLFW_KEY_T,
            (field, selecting) -> { TextOperations.transposeWords(field); return Result.HANDLED; }),
+
+    // Case conversion commands - Alt
+    META_U("M-u", Modifier.ALT, Category.CASE_CONVERSION, GLFW.GLFW_KEY_U,
+           (field, selecting) -> { TextOperations.uppercaseWord(field); return Result.HANDLED; }),
+
+    META_L("M-l", Modifier.ALT, Category.CASE_CONVERSION, GLFW.GLFW_KEY_L,
+           (field, selecting) -> { TextOperations.lowercaseWord(field); return Result.HANDLED; }),
+
+    META_C("M-c", Modifier.ALT, Category.CASE_CONVERSION, GLFW.GLFW_KEY_C,
+           (field, selecting) -> { TextOperations.capitalizeWord(field); return Result.HANDLED; }),
 
     // Mark/selection
     CTRL_SPACE("C-Space", Modifier.CTRL, Category.MARK, GLFW.GLFW_KEY_SPACE,
@@ -277,6 +295,12 @@ public enum Command {
             @Override
             public boolean isEnabled() {
                 return ConfigHelper.get().keybinds.transposeEnabled;
+            }
+        },
+        CASE_CONVERSION {
+            @Override
+            public boolean isEnabled() {
+                return ConfigHelper.get().keybinds.caseConversionEnabled;
             }
         },
         MARK {

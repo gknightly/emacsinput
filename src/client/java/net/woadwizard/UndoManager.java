@@ -21,6 +21,7 @@ public class UndoManager {
     // Separate undo stacks per widget instance. WeakHashMap ensures automatic cleanup
     // when the widget is no longer referenced (e.g., screen closed).
     private static final Map<Object, Deque<UndoState>> undoStacks = new WeakHashMap<>();
+    private static final Map<Object, Deque<UndoState>> redoStacks = new WeakHashMap<>();
 
     /**
      * Record a state for potential undo.
@@ -32,9 +33,12 @@ public class UndoManager {
      * @param cursorPos Current cursor position before the change
      */
     public static void recordState(Object widget, WidgetState state, String text, int cursorPos) {
-        if (widget == null || (state != null && state.isUndoing())) {
-            return; // Don't record state during undo operations
+        if (widget == null || (state != null && (state.isUndoing() || state.isRedoing()))) {
+            return; // Don't record state during undo/redo operations
         }
+
+        // Clear redo stack on new changes (redo becomes invalid)
+        redoStacks.remove(widget);
 
         Deque<UndoState> stack = undoStacks.computeIfAbsent(widget, k -> new ArrayDeque<>());
 
@@ -91,8 +95,13 @@ public class UndoManager {
                     LOGGER.debug("Undo: current state matches only available state");
                     return null;
                 }
+                // Push current state to redo before continuing
+                pushToRedo(widget, currentText, currentCursorPos);
                 previousState = stack.pop();
             }
+
+            // Push current state to redo stack
+            pushToRedo(widget, currentText, currentCursorPos);
 
             LOGGER.debug("Undo: restored to cursor={}, remainingStates={}", previousState.cursorPos, stack.size());
             return previousState;
@@ -104,11 +113,62 @@ public class UndoManager {
     }
 
     /**
-     * Clear undo history for a widget.
+     * Redo to the next state.
+     *
+     * @param widget The widget object
+     * @param state The widget's state (used to set redoing flag)
+     * @param currentText Current text
+     * @param currentCursorPos Current cursor position
+     * @return The next state to restore, or null if no redo available
+     */
+    public static UndoState redo(Object widget, WidgetState state, String currentText, int currentCursorPos) {
+        if (widget == null) {
+            return null;
+        }
+        Deque<UndoState> redoStack = redoStacks.get(widget);
+        if (redoStack == null || redoStack.isEmpty()) {
+            LOGGER.debug("Redo: no redo history available");
+            return null;
+        }
+
+        if (state != null) {
+            state.setRedoing(true);
+        }
+
+        try {
+            UndoState redoState = redoStack.pop();
+
+            // Push current state back to undo stack
+            Deque<UndoState> undoStack = undoStacks.computeIfAbsent(widget, k -> new ArrayDeque<>());
+            undoStack.push(new UndoState(currentText, currentCursorPos));
+
+            LOGGER.debug("Redo: restored to cursor={}, remainingRedoStates={}", redoState.cursorPos, redoStack.size());
+            return redoState;
+        } finally {
+            if (state != null) {
+                state.setRedoing(false);
+            }
+        }
+    }
+
+    /**
+     * Push state to redo stack.
+     */
+    private static void pushToRedo(Object widget, String text, int cursorPos) {
+        Deque<UndoState> redoStack = redoStacks.computeIfAbsent(widget, k -> new ArrayDeque<>());
+        redoStack.push(new UndoState(text, cursorPos));
+        while (redoStack.size() > MAX_UNDO_HISTORY) {
+            redoStack.removeLast();
+        }
+    }
+
+    /**
+     * Clear undo and redo history for a widget.
      */
     public static void clear(Object widget) {
         if (widget != null) {
             undoStacks.remove(widget);
+            redoStacks.remove(widget);
         }
     }
 

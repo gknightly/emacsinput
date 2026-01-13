@@ -67,6 +67,9 @@ public class ModConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public boolean markEnabled = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean caseConversionEnabled = true;
     }
 
     public static class HistorySearch {

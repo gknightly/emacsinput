@@ -178,7 +178,8 @@ public final class TextOperations {
     // ========== Transpose Operations ==========
 
     /**
-     * Transpose the two characters around the cursor (C-t).
+     * Transpose the two grapheme clusters around the cursor (C-t).
+     * Handles multi-codepoint emoji and combining characters correctly.
      */
     public static void transposeCharacters(TextFieldAdapter field) {
         Objects.requireNonNull(field, "field must not be null");
@@ -189,24 +190,36 @@ public final class TextOperations {
 
         UndoManager.recordState(field.getWidget(), field.getState(), text, cursor);
 
-        int pos1, pos2;
+        int pos1Start, pos1End, pos2Start, pos2End;
+
         if (cursor == 0) {
-            pos1 = 0;
-            pos2 = 1;
+            // At start: transpose first two graphemes
+            pos1Start = 0;
+            pos1End = GraphemeUtils.nextGraphemeBoundary(text, 0);
+            if (pos1End >= text.length()) return;
+            pos2Start = pos1End;
+            pos2End = GraphemeUtils.nextGraphemeBoundary(text, pos2Start);
         } else if (cursor >= text.length()) {
-            pos1 = text.length() - 2;
-            pos2 = text.length() - 1;
+            // At end: transpose last two graphemes
+            pos2End = text.length();
+            pos2Start = GraphemeUtils.previousGraphemeBoundary(text, pos2End);
+            if (pos2Start == 0) return;
+            pos1End = pos2Start;
+            pos1Start = GraphemeUtils.previousGraphemeBoundary(text, pos1End);
         } else {
-            pos1 = cursor - 1;
-            pos2 = cursor;
+            // Middle: transpose grapheme before and at/after cursor
+            pos1End = cursor;
+            pos1Start = GraphemeUtils.previousGraphemeBoundary(text, cursor);
+            pos2Start = cursor;
+            pos2End = GraphemeUtils.nextGraphemeBoundary(text, cursor);
         }
 
-        char c1 = text.charAt(pos1);
-        char c2 = text.charAt(pos2);
+        String grapheme1 = text.substring(pos1Start, pos1End);
+        String grapheme2 = text.substring(pos2Start, pos2End);
 
-        String newText = text.substring(0, pos1) + c2 + c1 + text.substring(pos2 + 1);
+        String newText = text.substring(0, pos1Start) + grapheme2 + grapheme1 + text.substring(pos2End);
         field.setText(newText);
-        field.setCursor(pos2 + 1);
+        field.setCursor(pos2End);
         field.collapseSelection();
         field.getState().deactivateMark();
     }
@@ -281,5 +294,100 @@ public final class TextOperations {
             field.collapseSelection();
         }
         widgetState.deactivateMark();
+    }
+
+    /**
+     * Perform redo operation (C-S-/).
+     */
+    public static void performRedo(TextFieldAdapter field) {
+        Objects.requireNonNull(field, "field must not be null");
+        String currentText = field.getText();
+        int currentCursor = field.getCursor();
+        WidgetState widgetState = field.getState();
+
+        UndoManager.UndoState state = UndoManager.redo(field.getWidget(), widgetState, currentText, currentCursor);
+        if (state != null) {
+            field.setText(state.text);
+            field.setCursor(Math.min(state.cursorPos, state.text.length()));
+            field.collapseSelection();
+        }
+        widgetState.deactivateMark();
+    }
+
+    // ========== Case Conversion Operations ==========
+
+    /**
+     * Uppercase word from cursor to end of word (M-u).
+     */
+    public static void uppercaseWord(TextFieldAdapter field) {
+        Objects.requireNonNull(field, "field must not be null");
+        convertWordCase(field, String::toUpperCase);
+    }
+
+    /**
+     * Lowercase word from cursor to end of word (M-l).
+     */
+    public static void lowercaseWord(TextFieldAdapter field) {
+        Objects.requireNonNull(field, "field must not be null");
+        convertWordCase(field, String::toLowerCase);
+    }
+
+    /**
+     * Capitalize word: uppercase first letter, lowercase rest (M-c).
+     */
+    public static void capitalizeWord(TextFieldAdapter field) {
+        Objects.requireNonNull(field, "field must not be null");
+        convertWordCase(field, TextOperations::capitalize);
+    }
+
+    /**
+     * Helper to capitalize a string (first letter uppercase, rest lowercase).
+     */
+    private static String capitalize(String s) {
+        if (s == null || s.isEmpty()) return s;
+        int firstLetter = -1;
+        for (int i = 0; i < s.length(); i++) {
+            if (Character.isLetter(s.charAt(i))) {
+                firstLetter = i;
+                break;
+            }
+        }
+        if (firstLetter < 0) return s.toLowerCase();
+        return s.substring(0, firstLetter)
+             + Character.toUpperCase(s.charAt(firstLetter))
+             + s.substring(firstLetter + 1).toLowerCase();
+    }
+
+    /**
+     * Common helper for case conversion operations.
+     * Operates on text from cursor to word end, then moves cursor past the word.
+     */
+    private static void convertWordCase(TextFieldAdapter field, java.util.function.UnaryOperator<String> converter) {
+        String text = field.getText();
+        int cursor = field.getCursor();
+
+        if (text == null || text.isEmpty() || cursor >= text.length()) {
+            field.getState().deactivateMark();
+            return;
+        }
+
+        int wordEnd = WordBoundary.findWordEndAfter(text, cursor);
+        if (wordEnd <= cursor) {
+            field.getState().deactivateMark();
+            return;
+        }
+
+        UndoManager.recordState(field.getWidget(), field.getState(), text, cursor);
+
+        String wordPart = text.substring(cursor, wordEnd);
+        String converted = converter.apply(wordPart);
+
+        String newText = text.substring(0, cursor) + converted + text.substring(wordEnd);
+        field.setText(newText);
+        field.setCursor(wordEnd);
+        field.collapseSelection();
+        field.getState().deactivateMark();
+
+        LOGGER.trace("Case conversion: '{}' -> '{}', cursor at {}", wordPart, converted, wordEnd);
     }
 }
