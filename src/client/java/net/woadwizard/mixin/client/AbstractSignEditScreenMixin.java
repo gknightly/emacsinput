@@ -1,5 +1,6 @@
 package net.woadwizard.mixin.client;
 
+import net.woadwizard.UndoManager;
 import net.woadwizard.config.Command;
 import net.woadwizard.emacs.EmacsKeyHandler;
 import net.woadwizard.emacs.TextFieldAdapter;
@@ -63,6 +64,12 @@ public abstract class AbstractSignEditScreenMixin {
 
         if (result == EmacsKeyHandler.Result.HANDLED) {
             cir.setReturnValue(true);
+        } else {
+            // Record undo state before vanilla text-modifying keys
+            if (keyCode == GLFW.GLFW_KEY_BACKSPACE || keyCode == GLFW.GLFW_KEY_DELETE) {
+                UndoManager.recordStateForDelete(adapter.getWidget(), adapter.getState(),
+                    adapter.getText(), adapter.getCursor());
+            }
         }
     }
 
@@ -71,6 +78,12 @@ public abstract class AbstractSignEditScreenMixin {
         if (EmacsKeyHandler.shouldBlockChar(event.modifiers())) {
             LOGGER.debug("Blocking modified character: codepoint={}", event.codepoint());
             cir.setReturnValue(false);
+            return;
         }
+
+        // Record undo state before character is typed (amalgamated)
+        TextFieldAdapter adapter = AdapterCache.get(signField);
+        UndoManager.recordStateForInsert(adapter.getWidget(), adapter.getState(),
+            adapter.getText(), adapter.getCursor());
     }
 }

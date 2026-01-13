@@ -1,14 +1,17 @@
 package net.woadwizard.mixin.client;
 
+import net.woadwizard.UndoManager;
 import net.woadwizard.search.HistorySearch;
 import net.woadwizard.search.SearchController;
 import net.woadwizard.emacs.EmacsKeyHandler;
+import net.woadwizard.emacs.TextFieldAdapter;
 import net.woadwizard.emacs.adapters.AdapterCache;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
+import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.Mixin;
@@ -25,12 +28,20 @@ public abstract class EditBoxMixin {
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
     private void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
         EditBox self = (EditBox)(Object)this;
+        TextFieldAdapter adapter = AdapterCache.get(self);
 
         EmacsKeyHandler.Result result = EmacsKeyHandler.handleKeyPress(
-            AdapterCache.get(self), event.key(), event.modifiers());
+            adapter, event.key(), event.modifiers());
 
         if (result == EmacsKeyHandler.Result.HANDLED) {
             cir.setReturnValue(true);
+        } else {
+            // Record undo state before vanilla text-modifying keys
+            int key = event.key();
+            if (key == GLFW.GLFW_KEY_BACKSPACE || key == GLFW.GLFW_KEY_DELETE) {
+                UndoManager.recordStateForDelete(adapter.getWidget(), adapter.getState(),
+                    adapter.getText(), adapter.getCursor());
+            }
         }
     }
 
@@ -54,7 +65,14 @@ public abstract class EditBoxMixin {
         if (EmacsKeyHandler.shouldBlockChar(event.modifiers())) {
             LOGGER.debug("Blocking modified character: codepoint={}", event.codepoint());
             cir.setReturnValue(false);
+            return;
         }
+
+        // Record undo state before character is typed (amalgamated)
+        EditBox self = (EditBox)(Object)this;
+        TextFieldAdapter adapter = AdapterCache.get(self);
+        UndoManager.recordStateForInsert(adapter.getWidget(), adapter.getState(),
+            adapter.getText(), adapter.getCursor());
     }
 
     /**
