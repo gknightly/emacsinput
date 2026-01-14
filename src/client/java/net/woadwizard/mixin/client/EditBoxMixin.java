@@ -6,11 +6,11 @@ import net.woadwizard.search.SearchController;
 import net.woadwizard.emacs.EmacsKeyHandler;
 import net.woadwizard.emacs.TextFieldAdapter;
 import net.woadwizard.emacs.adapters.AdapterCache;
+import net.woadwizard.compat.CharacterEvent;
+import net.woadwizard.compat.KeyEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.ChatScreen;
-import net.minecraft.client.input.CharacterEvent;
-import net.minecraft.client.input.KeyEvent;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,8 @@ public abstract class EditBoxMixin {
     private static final Logger LOGGER = LoggerFactory.getLogger(EditBoxMixin.class);
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-    private void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
+    private void onKeyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+        KeyEvent event = new KeyEvent(keyCode, scanCode, modifiers);
         EditBox self = (EditBox)(Object)this;
         TextFieldAdapter adapter = AdapterCache.get(self);
 
@@ -46,11 +47,11 @@ public abstract class EditBoxMixin {
     }
 
     @Inject(method = "charTyped", at = @At("HEAD"), cancellable = true)
-    private void onCharTyped(CharacterEvent event, CallbackInfoReturnable<Boolean> cir) {
+    private void onCharTyped(char c, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+        CharacterEvent event = new CharacterEvent(c, modifiers);
         // Handle search mode character input (only on ChatScreen)
         HistorySearch current = HistorySearch.getCurrent();
         if (current != null && current.isActive() && Minecraft.getInstance().screen instanceof ChatScreen) {
-            char c = (char) event.codepoint();
             LOGGER.debug("Search mode charTyped: '{}'", c);
 
             EditBox self = (EditBox)(Object)this;

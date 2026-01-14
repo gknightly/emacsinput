@@ -4,10 +4,10 @@ import net.woadwizard.UndoManager;
 import net.woadwizard.emacs.EmacsKeyHandler;
 import net.woadwizard.emacs.TextFieldAdapter;
 import net.woadwizard.emacs.adapters.AdapterCache;
+import net.woadwizard.compat.CharacterEvent;
+import net.woadwizard.compat.KeyEvent;
 import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.client.gui.components.MultilineTextField;
-import net.minecraft.client.input.CharacterEvent;
-import net.minecraft.client.input.KeyEvent;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,8 @@ public abstract class MultiLineEditBoxMixin {
     private MultilineTextField textField;
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-    private void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
+    private void onKeyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+        KeyEvent event = new KeyEvent(keyCode, scanCode, modifiers);
         TextFieldAdapter adapter = AdapterCache.get(textField);
         EmacsKeyHandler.Result result = EmacsKeyHandler.handleKeyPress(
             adapter, event.key(), event.modifiers());
@@ -46,7 +47,8 @@ public abstract class MultiLineEditBoxMixin {
     }
 
     @Inject(method = "charTyped", at = @At("HEAD"), cancellable = true)
-    private void onCharTyped(CharacterEvent event, CallbackInfoReturnable<Boolean> cir) {
+    private void onCharTyped(char c, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+        CharacterEvent event = new CharacterEvent(c, modifiers);
         if (EmacsKeyHandler.shouldBlockChar(event.modifiers())) {
             LOGGER.debug("Blocking modified character: codepoint={}", event.codepoint());
             cir.setReturnValue(false);

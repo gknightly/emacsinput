@@ -5,10 +5,10 @@ import net.woadwizard.config.Command;
 import net.woadwizard.emacs.EmacsKeyHandler;
 import net.woadwizard.emacs.TextFieldAdapter;
 import net.woadwizard.emacs.adapters.AdapterCache;
+import net.woadwizard.compat.CharacterEvent;
+import net.woadwizard.compat.KeyEvent;
 import net.minecraft.client.gui.font.TextFieldHelper;
 import net.minecraft.client.gui.screens.inventory.AbstractSignEditScreen;
-import net.minecraft.client.input.CharacterEvent;
-import net.minecraft.client.input.KeyEvent;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +31,8 @@ public abstract class AbstractSignEditScreenMixin {
     private int line;
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-    private void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
-        int keyCode = event.key();
-        int modifiers = event.modifiers();
+    private void onKeyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+        KeyEvent event = new KeyEvent(keyCode, scanCode, modifiers);
         boolean ctrlHeld = (modifiers & GLFW.GLFW_MOD_CONTROL) != 0;
 
         TextFieldAdapter adapter = AdapterCache.get(signField);
@@ -74,7 +73,8 @@ public abstract class AbstractSignEditScreenMixin {
     }
 
     @Inject(method = "charTyped", at = @At("HEAD"), cancellable = true)
-    private void onCharTyped(CharacterEvent event, CallbackInfoReturnable<Boolean> cir) {
+    private void onCharTyped(char c, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+        CharacterEvent event = new CharacterEvent(c, modifiers);
         if (EmacsKeyHandler.shouldBlockChar(event.modifiers())) {
             LOGGER.debug("Blocking modified character: codepoint={}", event.codepoint());
             cir.setReturnValue(false);
