@@ -3,9 +3,8 @@
 A client-side Fabric mod that adds Emacs-style keybindings to Minecraft text
 input fields, including chat, signs, command blocks, and books.
 
-## Scope
+It affects the following text fields:
 
-This mod is **client-side only** and affects all text input fields in Minecraft:
  -  Chat and command input
  -  Signs and hanging signs
  -  Books and quills
