@@ -9,7 +9,7 @@ import java.util.function.BiFunction;
 
 /**
  * Accessor for EditBox private fields.
- * In 1.20.1, EditBox uses a single BiFunction formatter, not a List<TextFormatter>.
+ * In 1.21.4, EditBox uses a single BiFunction formatter, not a List<TextFormatter>.
  */
 @Mixin(EditBox.class)
 public interface EditBoxInvoker {

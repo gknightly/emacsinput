@@ -69,7 +69,6 @@ public final class SearchController {
         historySearch.exit();
 
         editBox.setValue(original);
-        // In 1.20.1, moveCursorToEnd doesn't take a selecting parameter
-        editBox.moveCursorToEnd();
+        editBox.moveCursorToEnd(false);
     }
 }

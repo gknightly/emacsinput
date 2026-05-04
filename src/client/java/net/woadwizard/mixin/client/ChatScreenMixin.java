@@ -7,12 +7,13 @@ import net.woadwizard.search.SearchFormatter;
 import net.woadwizard.search.SearchModeHandler;
 import net.woadwizard.search.SearchState;
 import net.woadwizard.config.Command;
-import net.woadwizard.compat.KeyEvent;
+import net.woadwizard.config.ConfigHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.CommandSuggestions;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.ChatScreen;
+import net.woadwizard.compat.KeyEvent;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Mixin(value = ChatScreen.class, priority = 1100)
 public abstract class ChatScreenMixin {
@@ -109,10 +109,8 @@ public abstract class ChatScreenMixin {
             case GLFW.GLFW_KEY_P -> {
                 if (!Command.CTRL_P.isEnabled()) return null;
                 exitSearchIfActive();
-                // In 1.20.1, use accessor to check if suggestions are visible (no isVisible() method)
-                if (commandSuggestions != null && ((CommandSuggestionsAccessor) commandSuggestions).getSuggestions() != null) {
+                if (commandSuggestions != null && commandSuggestions.isVisible()) {
                     LOGGER.debug("C-p: navigating suggestions up");
-                    // In 1.20.1, keyPressed takes primitives not KeyEvent
                     return commandSuggestions.keyPressed(GLFW.GLFW_KEY_UP, event.scancode(), modifiers & ~GLFW.GLFW_MOD_CONTROL);
                 } else {
                     LOGGER.debug("C-p: previous history");
@@ -123,10 +121,8 @@ public abstract class ChatScreenMixin {
             case GLFW.GLFW_KEY_N -> {
                 if (!Command.CTRL_N.isEnabled()) return null;
                 exitSearchIfActive();
-                // In 1.20.1, use accessor to check if suggestions are visible (no isVisible() method)
-                if (commandSuggestions != null && ((CommandSuggestionsAccessor) commandSuggestions).getSuggestions() != null) {
+                if (commandSuggestions != null && commandSuggestions.isVisible()) {
                     LOGGER.debug("C-n: navigating suggestions down");
-                    // In 1.20.1, keyPressed takes primitives not KeyEvent
                     return commandSuggestions.keyPressed(GLFW.GLFW_KEY_DOWN, event.scancode(), modifiers & ~GLFW.GLFW_MOD_CONTROL);
                 } else {
                     LOGGER.debug("C-n: next history");
@@ -215,20 +211,15 @@ public abstract class ChatScreenMixin {
 
     @Unique
     private void addSearchFormatterIfNeeded() {
-        // In 1.20.1, EditBox uses a single formatter BiFunction instead of a List<TextFormatter>
-        // Install the SearchFormatter which wraps the existing formatter
         SearchFormatter.install(input);
     }
 
     @Unique
     private List<String> getSearchHistory(String currentInput) {
-        List<String> recentChat = Minecraft.getInstance().gui.getChat().getRecentChat();
         if (currentInput.startsWith("/")) {
-            // In 1.20.1, there's no separate command history - filter chat history for commands
-            return recentChat.stream()
-                .filter(s -> s.startsWith("/"))
-                .collect(Collectors.toList());
+            java.util.Collection<String> commands = Minecraft.getInstance().commandHistory().history();
+            return commands instanceof List<String> list ? list : new java.util.ArrayList<>(commands);
         }
-        return recentChat;
+        return Minecraft.getInstance().gui.getChat().getRecentChat();
     }
 }

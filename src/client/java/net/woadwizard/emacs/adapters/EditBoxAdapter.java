@@ -75,39 +75,23 @@ public class EditBoxAdapter implements TextFieldAdapter {
 
     @Override
     public void moveChar(int direction, boolean selecting) {
-        // In 1.20.1, moveCursor doesn't have a selecting parameter
-        editBox.moveCursor(direction);
-        if (!selecting) {
-            ((EditBoxAccessor) editBox).setHighlightPos(editBox.getCursorPosition());
-        }
+        editBox.moveCursor(direction, selecting);
     }
 
     @Override
     public void moveWord(int direction, boolean selecting) {
         int wordPos = editBox.getWordPosition(direction);
-        // In 1.20.1, moveCursorTo doesn't have a selecting parameter
-        editBox.moveCursorTo(wordPos);
-        if (!selecting) {
-            ((EditBoxAccessor) editBox).setHighlightPos(wordPos);
-        }
+        editBox.moveCursorTo(wordPos, selecting);
     }
 
     @Override
     public void moveToStart(boolean selecting) {
-        // In 1.20.1, moveCursorToStart doesn't have a selecting parameter
-        editBox.moveCursorToStart();
-        if (!selecting) {
-            ((EditBoxAccessor) editBox).setHighlightPos(editBox.getCursorPosition());
-        }
+        editBox.moveCursorToStart(selecting);
     }
 
     @Override
     public void moveToEnd(boolean selecting) {
-        // In 1.20.1, moveCursorToEnd doesn't have a selecting parameter
-        editBox.moveCursorToEnd();
-        if (!selecting) {
-            ((EditBoxAccessor) editBox).setHighlightPos(editBox.getCursorPosition());
-        }
+        editBox.moveCursorToEnd(selecting);
     }
 
     @Override
