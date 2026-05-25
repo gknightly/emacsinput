@@ -188,8 +188,6 @@ public final class TextOperations {
 
         if (text == null || text.length() < 2) return;
 
-        UndoManager.recordState(field.getWidget(), field.getState(), text, cursor);
-
         int pos1Start, pos1End, pos2Start, pos2End;
 
         if (cursor == 0) {
@@ -218,6 +216,9 @@ public final class TextOperations {
         String grapheme2 = text.substring(pos2Start, pos2End);
 
         String newText = text.substring(0, pos1Start) + grapheme2 + grapheme1 + text.substring(pos2End);
+        if (!newText.equals(text)) {
+            UndoManager.recordState(field.getWidget(), field.getState(), text, cursor);
+        }
         field.setText(newText);
         field.setCursor(pos2End);
         field.collapseSelection();
@@ -233,8 +234,6 @@ public final class TextOperations {
         int cursor = field.getCursor();
 
         if (text == null || text.isEmpty()) return;
-
-        UndoManager.recordState(field.getWidget(), field.getState(), text, cursor);
 
         // Find word1 (before or at cursor)
         int word1End = findWordEndBefore(text, cursor);
@@ -270,6 +269,9 @@ public final class TextOperations {
             newCursor = word1Start + word2.length() + between.length() + word1.length();
         }
 
+        if (!newText.equals(text)) {
+            UndoManager.recordState(field.getWidget(), field.getState(), text, cursor);
+        }
         field.setText(newText);
         field.setCursor(newCursor);
         field.collapseSelection();

@@ -27,6 +27,7 @@ public final class PlainJvmTestRunner {
         testGraphemeBoundaries();
         testUndoAmalgamationAndRedo();
         testTransposeCharacters();
+        testTransposeDoesNotRecordNoOpUndo();
         testCaseConversion();
         testHistorySearchCaseInsensitiveMatching();
         testHistorySearchCaseSensitiveMatching();
@@ -93,6 +94,24 @@ public final class PlainJvmTestRunner {
 
         assertEquals("transpose swaps adjacent graphemes", "ba\uD83D\uDE00", field.getText());
         assertEquals("transpose moves cursor after swapped pair", 2, field.getCursor());
+    }
+
+    private void testTransposeDoesNotRecordNoOpUndo() {
+        FakeTextField singleGrapheme = new FakeTextField("a", 0);
+
+        TextOperations.transposeCharacters(singleGrapheme);
+
+        assertEquals("single grapheme transpose leaves text unchanged", "a", singleGrapheme.getText());
+        assertEquals("single grapheme transpose records no undo", null,
+            UndoManager.undo(singleGrapheme.getWidget(), singleGrapheme.getState(), "a", 0));
+
+        FakeTextField singleWord = new FakeTextField("alpha", 5);
+
+        TextOperations.transposeWords(singleWord);
+
+        assertEquals("single word transpose leaves text unchanged", "alpha", singleWord.getText());
+        assertEquals("single word transpose records no undo", null,
+            UndoManager.undo(singleWord.getWidget(), singleWord.getState(), "alpha", 5));
     }
 
     private void testCaseConversion() {
