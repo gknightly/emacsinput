@@ -1,5 +1,6 @@
 package net.woadwizard.mixin.client;
 
+import net.woadwizard.KillRing;
 import net.woadwizard.SelectionHelper;
 import net.woadwizard.search.ChatKeyHandler;
 import net.woadwizard.search.ChatSearchUi;
@@ -103,6 +104,9 @@ public abstract class ChatScreenMixin {
 
     @Unique
     private boolean performChatAction(ChatKeyHandler.Action action, KeyEvent event, int modifiers) {
+        if (action != ChatKeyHandler.Action.NONE) {
+            KillRing.clearYankTracking();
+        }
         return switch (action) {
             case PREVIOUS_SUGGESTION -> {
                 exitSearchIfActive();

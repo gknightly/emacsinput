@@ -1,6 +1,7 @@
 package net.woadwizard.search;
 
 import net.woadwizard.UndoManager;
+import net.woadwizard.KillRingTest;
 import net.woadwizard.config.CommandLookupTest;
 import net.woadwizard.emacs.GraphemeUtils;
 import net.woadwizard.emacs.SignLineNavigationTest;
@@ -35,6 +36,7 @@ public final class PlainJvmTestRunner {
         failures.addAll(ChatKeyHandlerTest.run());
         failures.addAll(ChatSearchUiTest.run());
         failures.addAll(CommandLookupTest.run());
+        failures.addAll(KillRingTest.run());
         failures.addAll(SignLineNavigationTest.run());
         failures.addAll(TextInputEventHandlerTest.run());
 

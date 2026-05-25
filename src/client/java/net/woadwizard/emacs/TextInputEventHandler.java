@@ -1,5 +1,6 @@
 package net.woadwizard.emacs;
 
+import net.woadwizard.KillRing;
 import net.woadwizard.UndoManager;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
@@ -39,6 +40,7 @@ public final class TextInputEventHandler {
             return true;
         }
 
+        KillRing.clearYankTracking();
         if (isDeleteKey(keyCode)) {
             UndoManager.recordStateForDelete(
                 field.getWidget(), field.getState(), field.getText(), field.getCursor());
@@ -52,6 +54,7 @@ public final class TextInputEventHandler {
             return true;
         }
 
+        KillRing.clearYankTracking();
         UndoManager.recordStateForInsert(
             field.getWidget(), field.getState(), field.getText(), field.getCursor());
         return false;

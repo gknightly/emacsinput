@@ -1,5 +1,6 @@
 package net.woadwizard.mixin.client;
 
+import net.woadwizard.KillRing;
 import net.woadwizard.emacs.SignLineNavigation;
 import net.woadwizard.emacs.TextFieldAdapter;
 import net.woadwizard.emacs.TextInputEventHandler;
@@ -36,6 +37,7 @@ public abstract class AbstractSignEditScreenMixin {
 
         SignLineNavigation.Result signNavigation = SignLineNavigation.handle(keyCode, modifiers, line);
         if (signNavigation.handled()) {
+            KillRing.clearYankTracking();
             LOGGER.debug("Moved to sign line {}", signNavigation.line());
             line = signNavigation.line();
             signField.setCursorToEnd();

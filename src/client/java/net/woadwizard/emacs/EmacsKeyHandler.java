@@ -1,5 +1,6 @@
 package net.woadwizard.emacs;
 
+import net.woadwizard.KillRing;
 import net.woadwizard.config.Command;
 import net.woadwizard.config.ConfigHelper;
 import net.woadwizard.config.ModConfig;
@@ -56,6 +57,7 @@ public final class EmacsKeyHandler {
         if (state.isCxPrefixActive()) {
             state.resetCxPrefix();
             if (ctrlHeld && !shiftHeld && keyCode == GLFW.GLFW_KEY_X && Command.CTRL_X_CTRL_X.isEnabled()) {
+                KillRing.clearYankTracking();
                 LOGGER.trace("C-x C-x: exchanging point and mark");
                 int curPos = field.getCursor();
                 int selectPos = field.getSelectionStart();
@@ -69,6 +71,7 @@ public final class EmacsKeyHandler {
         // Handle Escape: clear selection/mark if active, otherwise pass through
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             if (state.isMarkActive() || field.hasSelection()) {
+                KillRing.clearYankTracking();
                 LOGGER.trace("Escape: clearing selection/mark");
                 state.deactivateMark();
                 field.collapseSelection();
@@ -88,6 +91,7 @@ public final class EmacsKeyHandler {
         if (ctrlHeld && ConfigHelper.isCtrlEnabled()) {
             Command cmd = Command.fromCtrlKey(keyCode, shiftHeld);
             if (cmd != null && cmd.isEnabled() && cmd.hasAction()) {
+                clearYankTrackingUnlessYankCommand(cmd);
                 LOGGER.trace("{}: executing", cmd.getName());
                 Command.Result cmdResult = cmd.execute(field, selecting);
                 return toHandlerResult(cmdResult);
@@ -98,6 +102,7 @@ public final class EmacsKeyHandler {
         if (altHeld && ConfigHelper.isAltEnabled()) {
             Command cmd = Command.fromAltKey(keyCode, shiftHeld);
             if (cmd != null && cmd.isEnabled() && cmd.hasAction()) {
+                clearYankTrackingUnlessYankCommand(cmd);
                 LOGGER.trace("{}: executing", cmd.getName());
                 Command.Result cmdResult = cmd.execute(field, selecting);
                 return toHandlerResult(cmdResult);
@@ -118,6 +123,12 @@ public final class EmacsKeyHandler {
             case HANDLED -> Result.HANDLED;
             case PASS_THROUGH -> Result.PASS_THROUGH;
         };
+    }
+
+    private static void clearYankTrackingUnlessYankCommand(Command cmd) {
+        if (cmd != Command.CTRL_Y && cmd != Command.META_Y) {
+            KillRing.clearYankTracking();
+        }
     }
 
     /**

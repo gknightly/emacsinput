@@ -147,10 +147,11 @@ public final class TextOperations {
         String text = KillRing.yank();
         if (text != null && !text.isEmpty()) {
             int cursorBefore = field.getCursor();
+            int insertStart = Math.min(cursorBefore, field.getSelectionStart());
             UndoManager.recordState(field.getWidget(), field.getState(), field.getText(), cursorBefore);
             field.insertText(text);
             int cursorAfter = field.getCursor();
-            KillRing.recordYank(cursorAfter, text.length());
+            KillRing.recordYank(field.getWidget(), insertStart, cursorAfter, text);
             LOGGER.trace("Yank: inserted {} chars, cursor {} -> {}", text.length(), cursorBefore, cursorAfter);
         }
         field.getState().deactivateMark();
@@ -162,16 +163,19 @@ public final class TextOperations {
     public static void yankPop(TextFieldAdapter field) {
         Objects.requireNonNull(field, "field must not be null");
         int cursor = field.getCursor();
-        int lastLen = KillRing.getLastYankLength();
-        String nextText = KillRing.yankPop(cursor);
-        if (nextText != null && !nextText.isEmpty()) {
-            UndoManager.recordState(field.getWidget(), field.getState(), field.getText(), cursor);
+        String currentText = field.getText();
+        KillRing.YankPopReplacement replacement =
+            KillRing.yankPop(field.getWidget(), currentText, cursor);
+        if (replacement != null && !replacement.text().isEmpty()) {
+            UndoManager.recordState(field.getWidget(), field.getState(), currentText, cursor);
             // Select the previously yanked text and replace it
-            field.setSelectionStart(cursor - lastLen);
-            field.insertText(nextText);
+            field.setSelectionStart(replacement.start());
+            field.insertText(replacement.text());
             int newCursor = field.getCursor();
-            KillRing.updateYankPosition(newCursor, nextText.length());
-            LOGGER.trace("Yank-pop: replaced {} chars with {} chars", lastLen, nextText.length());
+            KillRing.updateYankPosition(
+                field.getWidget(), replacement.start(), newCursor, replacement.text());
+            LOGGER.trace("Yank-pop: replaced {} chars with {} chars",
+                replacement.end() - replacement.start(), replacement.text().length());
         }
     }
 
