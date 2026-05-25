@@ -22,9 +22,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class EditBoxMixin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EditBoxMixin.class);
+    private int emacsInput$lastModifiers;
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
     private void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
+        emacsInput$lastModifiers = event.modifiers();
         EditBox self = (EditBox)(Object)this;
         TextFieldAdapter adapter = AdapterCache.get(self);
 
@@ -51,7 +53,7 @@ public abstract class EditBoxMixin {
 
         EditBox self = (EditBox)(Object)this;
         TextFieldAdapter adapter = AdapterCache.get(self);
-        if (TextInputEventHandler.handleCharTyped(adapter, event.codepoint(), event.modifiers())) {
+        if (TextInputEventHandler.handleCharTyped(adapter, event.codepoint(), emacsInput$lastModifiers)) {
             cir.setReturnValue(false);
         }
     }

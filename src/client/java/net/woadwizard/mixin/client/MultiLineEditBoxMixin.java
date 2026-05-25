@@ -20,9 +20,11 @@ public abstract class MultiLineEditBoxMixin {
     @Shadow
     @Final
     private MultilineTextField textField;
+    private int emacsInput$lastModifiers;
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
     private void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
+        emacsInput$lastModifiers = event.modifiers();
         TextFieldAdapter adapter = AdapterCache.get(textField);
         if (TextInputEventHandler.handleKeyPress(adapter, event.key(), event.modifiers())) {
             cir.setReturnValue(true);
@@ -32,7 +34,7 @@ public abstract class MultiLineEditBoxMixin {
     @Inject(method = "charTyped", at = @At("HEAD"), cancellable = true)
     private void onCharTyped(CharacterEvent event, CallbackInfoReturnable<Boolean> cir) {
         TextFieldAdapter adapter = AdapterCache.get(textField);
-        if (TextInputEventHandler.handleCharTyped(adapter, event.codepoint(), event.modifiers())) {
+        if (TextInputEventHandler.handleCharTyped(adapter, event.codepoint(), emacsInput$lastModifiers)) {
             cir.setReturnValue(false);
         }
     }

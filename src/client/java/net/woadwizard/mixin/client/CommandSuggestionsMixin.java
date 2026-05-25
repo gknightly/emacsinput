@@ -1,7 +1,7 @@
 package net.woadwizard.mixin.client;
 
 import net.woadwizard.search.HistorySearch;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.CommandSuggestions;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,8 +17,8 @@ public class CommandSuggestionsMixin {
     /**
      * Skip rendering the entire suggestions UI during search mode.
      */
-    @Inject(method = "render", at = @At("HEAD"), cancellable = true)
-    private void onRender(GuiGraphics graphics, int mouseX, int mouseY, CallbackInfo ci) {
+    @Inject(method = "extractRenderState", at = @At("HEAD"), cancellable = true)
+    private void onExtractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, CallbackInfo ci) {
         if (HistorySearch.isSearchActive()) {
             ci.cancel();
         }
@@ -28,8 +28,8 @@ public class CommandSuggestionsMixin {
      * Skip rendering the command usage hints (e.g., "<gamemode> [<target>]")
      * when in history search mode.
      */
-    @Inject(method = "renderUsage", at = @At("HEAD"), cancellable = true)
-    private void onRenderUsage(GuiGraphics graphics, CallbackInfo ci) {
+    @Inject(method = "extractUsage", at = @At("HEAD"), cancellable = true)
+    private void onExtractUsage(GuiGraphicsExtractor graphics, CallbackInfo ci) {
         if (HistorySearch.isSearchActive()) {
             ci.cancel();
         }

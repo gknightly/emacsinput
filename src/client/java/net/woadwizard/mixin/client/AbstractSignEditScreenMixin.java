@@ -27,11 +27,13 @@ public abstract class AbstractSignEditScreenMixin {
 
     @Shadow
     private int line;
+    private int emacsInput$lastModifiers;
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
     private void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
         int keyCode = event.key();
         int modifiers = event.modifiers();
+        emacsInput$lastModifiers = modifiers;
 
         TextFieldAdapter adapter = AdapterCache.get(signField);
 
@@ -54,7 +56,7 @@ public abstract class AbstractSignEditScreenMixin {
     @Inject(method = "charTyped", at = @At("HEAD"), cancellable = true)
     private void onCharTyped(CharacterEvent event, CallbackInfoReturnable<Boolean> cir) {
         TextFieldAdapter adapter = AdapterCache.get(signField);
-        if (TextInputEventHandler.handleCharTyped(adapter, event.codepoint(), event.modifiers())) {
+        if (TextInputEventHandler.handleCharTyped(adapter, event.codepoint(), emacsInput$lastModifiers)) {
             cir.setReturnValue(false);
         }
     }

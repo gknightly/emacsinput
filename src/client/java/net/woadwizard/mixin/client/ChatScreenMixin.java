@@ -9,7 +9,7 @@ import net.woadwizard.search.SearchController;
 import net.woadwizard.search.SearchFormatter;
 import net.woadwizard.search.SearchModeHandler;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.CommandSuggestions;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.ChatScreen;
@@ -155,8 +155,9 @@ public abstract class ChatScreenMixin {
         };
     }
 
-    @Inject(method = "render", at = @At("TAIL"))
-    private void onRender(GuiGraphics graphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+    @Inject(method = "extractRenderState", at = @At("TAIL"))
+    private void onExtractRenderState(
+        GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
         if (!historySearch.isActive()) {
             return;
         }
@@ -167,7 +168,7 @@ public abstract class ChatScreenMixin {
         int x = input.getX();
         int y = input.getY() - font.lineHeight - 2;
 
-        graphics.drawString(font, indicator, x, y, 0xFFFFFFFF, true);
+        graphics.text(font, indicator, x, y, 0xFFFFFFFF, true);
     }
 
     @Unique
