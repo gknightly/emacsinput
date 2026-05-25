@@ -1,9 +1,8 @@
 package net.woadwizard.mixin.client;
 
-import net.woadwizard.UndoManager;
 import net.woadwizard.config.Command;
-import net.woadwizard.emacs.EmacsKeyHandler;
 import net.woadwizard.emacs.TextFieldAdapter;
+import net.woadwizard.emacs.TextInputEventHandler;
 import net.woadwizard.emacs.adapters.AdapterCache;
 import net.minecraft.client.gui.font.TextFieldHelper;
 import net.minecraft.client.gui.screens.inventory.AbstractSignEditScreen;
@@ -58,32 +57,16 @@ public abstract class AbstractSignEditScreenMixin {
             }
         }
 
-        // Handle all other Emacs bindings via shared handler
-        EmacsKeyHandler.Result result = EmacsKeyHandler.handleKeyPress(
-            adapter, keyCode, modifiers);
-
-        if (result == EmacsKeyHandler.Result.HANDLED) {
+        if (TextInputEventHandler.handleKeyPress(adapter, keyCode, modifiers)) {
             cir.setReturnValue(true);
-        } else {
-            // Record undo state before vanilla text-modifying keys
-            if (keyCode == GLFW.GLFW_KEY_BACKSPACE || keyCode == GLFW.GLFW_KEY_DELETE) {
-                UndoManager.recordStateForDelete(adapter.getWidget(), adapter.getState(),
-                    adapter.getText(), adapter.getCursor());
-            }
         }
     }
 
     @Inject(method = "charTyped", at = @At("HEAD"), cancellable = true)
     private void onCharTyped(CharacterEvent event, CallbackInfoReturnable<Boolean> cir) {
-        if (EmacsKeyHandler.shouldBlockChar(event.modifiers())) {
-            LOGGER.debug("Blocking modified character: codepoint={}", event.codepoint());
-            cir.setReturnValue(false);
-            return;
-        }
-
-        // Record undo state before character is typed (amalgamated)
         TextFieldAdapter adapter = AdapterCache.get(signField);
-        UndoManager.recordStateForInsert(adapter.getWidget(), adapter.getState(),
-            adapter.getText(), adapter.getCursor());
+        if (TextInputEventHandler.handleCharTyped(adapter, event.codepoint(), event.modifiers())) {
+            cir.setReturnValue(false);
+        }
     }
 }

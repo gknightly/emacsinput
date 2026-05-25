@@ -3,6 +3,7 @@ package net.woadwizard.search;
 import net.woadwizard.UndoManager;
 import net.woadwizard.emacs.GraphemeUtils;
 import net.woadwizard.emacs.TextFieldAdapter;
+import net.woadwizard.emacs.TextInputEventHandlerTest;
 import net.woadwizard.emacs.TextOperations;
 import net.woadwizard.emacs.WidgetState;
 import net.woadwizard.emacs.WordBoundary;
@@ -28,6 +29,7 @@ public final class PlainJvmTestRunner {
         testHistorySearchCaseInsensitiveMatching();
         testHistorySearchCaseSensitiveMatching();
         testHistorySearchReusesLastQuery();
+        failures.addAll(TextInputEventHandlerTest.run());
 
         if (!failures.isEmpty()) {
             failures.forEach(System.err::println);
