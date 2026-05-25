@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 /**
  * Emacs-style incremental history search (C-r / C-s).
@@ -18,6 +19,8 @@ import java.util.List;
 public class HistorySearch {
     private static final Logger LOGGER = LoggerFactory.getLogger(HistorySearch.class);
 
+    private final BooleanSupplier caseSensitiveSupplier;
+
     // Search state
     private boolean active = false;
     private final StringBuilder query = new StringBuilder();
@@ -28,6 +31,14 @@ public class HistorySearch {
     // Match tracking
     private List<Match> matches = new ArrayList<>();
     private int selectedIndex = -1;
+
+    public HistorySearch() {
+        this(ConfigHelper::isHistorySearchCaseSensitive);
+    }
+
+    HistorySearch(BooleanSupplier caseSensitiveSupplier) {
+        this.caseSensitiveSupplier = caseSensitiveSupplier;
+    }
 
     /**
      * Represents a match: the history entry text, its index in history,
@@ -182,7 +193,7 @@ public class HistorySearch {
         }
 
         String queryStr = query.toString();
-        boolean caseSensitive = ConfigHelper.isHistorySearchCaseSensitive();
+        boolean caseSensitive = caseSensitiveSupplier.getAsBoolean();
         String searchQuery = caseSensitive ? queryStr : queryStr.toLowerCase();
 
         // Iterate history from newest to oldest

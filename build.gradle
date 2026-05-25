@@ -47,6 +47,33 @@ dependencies {
 	modApi("com.terraformersmc:modmenu:${project.modmenu_version}")
 }
 
+sourceSets {
+	test {
+		compileClasspath += sourceSets.client.output + sourceSets.client.compileClasspath
+		runtimeClasspath += sourceSets.client.output + sourceSets.client.runtimeClasspath
+	}
+}
+
+tasks.named("compileTestJava") {
+	dependsOn tasks.named("compileClientJava")
+}
+
+tasks.register("plainJvmTest", JavaExec) {
+	group = "verification"
+	description = "Runs dependency-free JVM tests for the shared editing logic."
+	dependsOn tasks.named("testClasses")
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = "net.woadwizard.search.PlainJvmTestRunner"
+}
+
+tasks.named("test", Test) {
+	failOnNoDiscoveredTests = false
+}
+
+tasks.named("check") {
+	dependsOn tasks.named("plainJvmTest")
+}
+
 processResources {
 	inputs.property "version", project.version
 
