@@ -1,6 +1,7 @@
 package net.woadwizard.search;
 
 import net.woadwizard.UndoManager;
+import net.woadwizard.config.CommandLookupTest;
 import net.woadwizard.emacs.GraphemeUtils;
 import net.woadwizard.emacs.TextFieldAdapter;
 import net.woadwizard.emacs.TextInputEventHandlerTest;
@@ -29,6 +30,7 @@ public final class PlainJvmTestRunner {
         testHistorySearchCaseInsensitiveMatching();
         testHistorySearchCaseSensitiveMatching();
         testHistorySearchReusesLastQuery();
+        failures.addAll(CommandLookupTest.run());
         failures.addAll(TextInputEventHandlerTest.run());
 
         if (!failures.isEmpty()) {

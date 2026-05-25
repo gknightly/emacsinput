@@ -55,7 +55,7 @@ public final class EmacsKeyHandler {
         // Handle C-x prefix for C-x C-x sequence
         if (state.isCxPrefixActive()) {
             state.resetCxPrefix();
-            if (ctrlHeld && keyCode == GLFW.GLFW_KEY_X && Command.CTRL_X_CTRL_X.isEnabled()) {
+            if (ctrlHeld && !shiftHeld && keyCode == GLFW.GLFW_KEY_X && Command.CTRL_X_CTRL_X.isEnabled()) {
                 LOGGER.trace("C-x C-x: exchanging point and mark");
                 int curPos = field.getCursor();
                 int selectPos = field.getSelectionStart();
@@ -78,7 +78,7 @@ public final class EmacsKeyHandler {
         }
 
         // Handle C-x prefix initiation
-        if (ctrlHeld && keyCode == GLFW.GLFW_KEY_X && Command.CTRL_X_CTRL_X.isEnabled()) {
+        if (ctrlHeld && !shiftHeld && keyCode == GLFW.GLFW_KEY_X && Command.CTRL_X_CTRL_X.isEnabled()) {
             LOGGER.trace("C-x: waiting for next key");
             state.setCxPrefix(true);
             return Result.HANDLED;
@@ -86,16 +86,7 @@ public final class EmacsKeyHandler {
 
         // Try Ctrl commands
         if (ctrlHeld && ConfigHelper.isCtrlEnabled()) {
-            // Special case: C-S-/ for redo (shift distinguishes from C-/ undo)
-            if (shiftHeld && keyCode == GLFW.GLFW_KEY_SLASH) {
-                if (Command.CTRL_SHIFT_SLASH.isEnabled() && Command.CTRL_SHIFT_SLASH.hasAction()) {
-                    LOGGER.trace("C-S-/: executing redo");
-                    Command.Result cmdResult = Command.CTRL_SHIFT_SLASH.execute(field, selecting);
-                    return toHandlerResult(cmdResult);
-                }
-            }
-
-            Command cmd = Command.fromCtrlKey(keyCode);
+            Command cmd = Command.fromCtrlKey(keyCode, shiftHeld);
             if (cmd != null && cmd.isEnabled() && cmd.hasAction()) {
                 LOGGER.trace("{}: executing", cmd.getName());
                 Command.Result cmdResult = cmd.execute(field, selecting);
@@ -105,7 +96,7 @@ public final class EmacsKeyHandler {
 
         // Try Alt commands
         if (altHeld && ConfigHelper.isAltEnabled()) {
-            Command cmd = Command.fromAltKey(keyCode);
+            Command cmd = Command.fromAltKey(keyCode, shiftHeld);
             if (cmd != null && cmd.isEnabled() && cmd.hasAction()) {
                 LOGGER.trace("{}: executing", cmd.getName());
                 Command.Result cmdResult = cmd.execute(field, selecting);

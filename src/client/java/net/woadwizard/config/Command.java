@@ -18,19 +18,19 @@ import java.util.Map;
  */
 public enum Command {
     // Navigation commands - Ctrl
-    CTRL_F("C-f", Modifier.CTRL, Category.NAVIGATION, GLFW.GLFW_KEY_F,
+    CTRL_F("C-f", Modifier.CTRL, Category.NAVIGATION, GLFW.GLFW_KEY_F, ShiftMode.ANY,
            (field, selecting) -> { field.moveChar(1, selecting); return Result.HANDLED; }),
 
-    CTRL_B("C-b", Modifier.CTRL, Category.NAVIGATION, GLFW.GLFW_KEY_B,
+    CTRL_B("C-b", Modifier.CTRL, Category.NAVIGATION, GLFW.GLFW_KEY_B, ShiftMode.ANY,
            (field, selecting) -> { field.moveChar(-1, selecting); return Result.HANDLED; }),
 
-    CTRL_A("C-a", Modifier.CTRL, Category.NAVIGATION, GLFW.GLFW_KEY_A,
+    CTRL_A("C-a", Modifier.CTRL, Category.NAVIGATION, GLFW.GLFW_KEY_A, ShiftMode.ANY,
            (field, selecting) -> { field.moveToStart(selecting); return Result.HANDLED; }),
 
-    CTRL_E("C-e", Modifier.CTRL, Category.NAVIGATION, GLFW.GLFW_KEY_E,
+    CTRL_E("C-e", Modifier.CTRL, Category.NAVIGATION, GLFW.GLFW_KEY_E, ShiftMode.ANY,
            (field, selecting) -> { field.moveToEnd(selecting); return Result.HANDLED; }),
 
-    CTRL_P("C-p", Modifier.CTRL, Category.NAVIGATION, GLFW.GLFW_KEY_P,
+    CTRL_P("C-p", Modifier.CTRL, Category.NAVIGATION, GLFW.GLFW_KEY_P, ShiftMode.ANY,
            (field, selecting) -> {
                if (field.supportsMultiLine()) {
                    field.moveLine(-1, selecting);
@@ -39,7 +39,7 @@ public enum Command {
                return Result.PASS_THROUGH;
            }),
 
-    CTRL_N("C-n", Modifier.CTRL, Category.NAVIGATION, GLFW.GLFW_KEY_N,
+    CTRL_N("C-n", Modifier.CTRL, Category.NAVIGATION, GLFW.GLFW_KEY_N, ShiftMode.ANY,
            (field, selecting) -> {
                if (field.supportsMultiLine()) {
                    field.moveLine(1, selecting);
@@ -49,10 +49,10 @@ public enum Command {
            }),
 
     // Navigation commands - Alt
-    META_F("M-f", Modifier.ALT, Category.NAVIGATION, GLFW.GLFW_KEY_F,
+    META_F("M-f", Modifier.ALT, Category.NAVIGATION, GLFW.GLFW_KEY_F, ShiftMode.ANY,
            (field, selecting) -> { field.moveWord(1, selecting); return Result.HANDLED; }),
 
-    META_B("M-b", Modifier.ALT, Category.NAVIGATION, GLFW.GLFW_KEY_B,
+    META_B("M-b", Modifier.ALT, Category.NAVIGATION, GLFW.GLFW_KEY_B, ShiftMode.ANY,
            (field, selecting) -> { field.moveWord(-1, selecting); return Result.HANDLED; }),
 
     // Kill ring commands - Ctrl
@@ -100,7 +100,7 @@ public enum Command {
     CTRL_SLASH("C-/", Modifier.CTRL, Category.UNDO, GLFW.GLFW_KEY_SLASH,
            (field, selecting) -> { TextOperations.performUndo(field); return Result.HANDLED; }),
 
-    CTRL_SHIFT_SLASH("C-S-/", Modifier.CTRL, Category.UNDO, GLFW.GLFW_KEY_SLASH,
+    CTRL_SHIFT_SLASH("C-S-/", Modifier.CTRL, Category.UNDO, GLFW.GLFW_KEY_SLASH, ShiftMode.REQUIRED,
            (field, selecting) -> { TextOperations.performRedo(field); return Result.HANDLED; }),
 
     // Transpose
@@ -163,26 +163,34 @@ public enum Command {
     private final Modifier modifier;
     private final Category category;
     private final int keyCode;
+    private final ShiftMode shiftMode;
     private final Action action;
 
     // Lookup maps for fast access by key code
     private static final Map<Integer, Command> CTRL_COMMANDS = new HashMap<>();
+    private static final Map<Integer, Command> CTRL_SHIFT_COMMANDS = new HashMap<>();
     private static final Map<Integer, Command> ALT_COMMANDS = new HashMap<>();
+    private static final Map<Integer, Command> ALT_SHIFT_COMMANDS = new HashMap<>();
 
     static {
         for (Command cmd : values()) {
-            Map<Integer, Command> map = (cmd.modifier == Modifier.CTRL) ? CTRL_COMMANDS : ALT_COMMANDS;
             if (cmd != CTRL_X_CTRL_X) {
+                Map<Integer, Command> map = cmd.lookupMap();
                 map.putIfAbsent(cmd.keyCode, cmd);
             }
         }
     }
 
     Command(String name, Modifier modifier, Category category, int keyCode, Action action) {
+        this(name, modifier, category, keyCode, ShiftMode.FORBIDDEN, action);
+    }
+
+    Command(String name, Modifier modifier, Category category, int keyCode, ShiftMode shiftMode, Action action) {
         this.name = name;
         this.modifier = modifier;
         this.category = category;
         this.keyCode = keyCode;
+        this.shiftMode = shiftMode;
         this.action = action;
     }
 
@@ -200,6 +208,10 @@ public enum Command {
 
     public int getKeyCode() {
         return keyCode;
+    }
+
+    public ShiftMode getShiftMode() {
+        return shiftMode;
     }
 
     /**
@@ -231,14 +243,28 @@ public enum Command {
      * Find the Command for a Ctrl+key combination.
      */
     public static Command fromCtrlKey(int keyCode) {
-        return CTRL_COMMANDS.get(keyCode);
+        return fromCtrlKey(keyCode, false);
+    }
+
+    /**
+     * Find the Command for a Ctrl+key combination, accounting for Shift-specific bindings.
+     */
+    public static Command fromCtrlKey(int keyCode, boolean shiftHeld) {
+        return fromKey(CTRL_COMMANDS, CTRL_SHIFT_COMMANDS, keyCode, shiftHeld);
     }
 
     /**
      * Find the Command for an Alt+key combination.
      */
     public static Command fromAltKey(int keyCode) {
-        return ALT_COMMANDS.get(keyCode);
+        return fromAltKey(keyCode, false);
+    }
+
+    /**
+     * Find the Command for an Alt+key combination, accounting for Shift-specific bindings.
+     */
+    public static Command fromAltKey(int keyCode, boolean shiftHeld) {
+        return fromKey(ALT_COMMANDS, ALT_SHIFT_COMMANDS, keyCode, shiftHeld);
     }
 
     /**
@@ -255,6 +281,44 @@ public enum Command {
     public static boolean isCtrlKeyBound(int keyCode) {
         Command cmd = CTRL_COMMANDS.get(keyCode);
         return cmd != null && cmd.isEnabled();
+    }
+
+    private Map<Integer, Command> lookupMap() {
+        return switch (modifier) {
+            case CTRL -> shiftMode == ShiftMode.REQUIRED ? CTRL_SHIFT_COMMANDS : CTRL_COMMANDS;
+            case ALT -> shiftMode == ShiftMode.REQUIRED ? ALT_SHIFT_COMMANDS : ALT_COMMANDS;
+        };
+    }
+
+    private static Command fromKey(
+        Map<Integer, Command> commands,
+        Map<Integer, Command> shiftCommands,
+        int keyCode,
+        boolean shiftHeld
+    ) {
+        if (shiftHeld) {
+            Command shiftCommand = shiftCommands.get(keyCode);
+            if (shiftCommand != null) {
+                return shiftCommand;
+            }
+        }
+        Command command = commands.get(keyCode);
+        if (shiftHeld && command != null && command.shiftMode != ShiftMode.ANY) {
+            return null;
+        }
+        return command;
+    }
+
+    /**
+     * Shift matching behavior for a command.
+     * ANY preserves shift-selection variants like C-S-f.
+     * REQUIRED is for commands where Shift changes the command itself.
+     * FORBIDDEN keeps shifted editing commands from becoming implicit aliases.
+     */
+    public enum ShiftMode {
+        ANY,
+        REQUIRED,
+        FORBIDDEN
     }
 
     /**
