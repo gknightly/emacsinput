@@ -31,6 +31,8 @@ public final class PlainJvmTestRunner {
         testHistorySearchCaseInsensitiveMatching();
         testHistorySearchCaseSensitiveMatching();
         testHistorySearchReusesLastQuery();
+        failures.addAll(ChatKeyHandlerTest.run());
+        failures.addAll(ChatSearchUiTest.run());
         failures.addAll(CommandLookupTest.run());
         failures.addAll(SignLineNavigationTest.run());
         failures.addAll(TextInputEventHandlerTest.run());

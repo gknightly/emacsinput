@@ -1,13 +1,12 @@
 package net.woadwizard.mixin.client;
 
 import net.woadwizard.SelectionHelper;
+import net.woadwizard.search.ChatKeyHandler;
+import net.woadwizard.search.ChatSearchUi;
 import net.woadwizard.search.HistorySearch;
 import net.woadwizard.search.SearchController;
 import net.woadwizard.search.SearchFormatter;
 import net.woadwizard.search.SearchModeHandler;
-import net.woadwizard.search.SearchState;
-import net.woadwizard.config.Command;
-import net.woadwizard.config.ConfigHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.CommandSuggestions;
@@ -85,13 +84,11 @@ public abstract class ChatScreenMixin {
             }
         }
 
-        // Handle Ctrl keys for history/search navigation
-        if (ctrlHeld) {
-            Boolean result = handleCtrlKey(event, keyCode, modifiers);
-            if (result != null) {
-                cir.setReturnValue(result);
-                return;
-            }
+        ChatKeyHandler.Result chatKeyResult = ChatKeyHandler.handleCtrlKey(
+            keyCode, modifiers, commandSuggestions != null && commandSuggestions.isVisible());
+        if (chatKeyResult.handled()) {
+            cir.setReturnValue(performChatAction(chatKeyResult.action(), event, modifiers));
+            return;
         }
 
         // Escape outside search mode: clear selection first, then let native close chat
@@ -105,64 +102,53 @@ public abstract class ChatScreenMixin {
     }
 
     @Unique
-    private Boolean handleCtrlKey(KeyEvent event, int keyCode, int modifiers) {
-        switch (keyCode) {
-            case GLFW.GLFW_KEY_P -> {
-                if (!Command.CTRL_P.isEnabled()) return null;
+    private boolean performChatAction(ChatKeyHandler.Action action, KeyEvent event, int modifiers) {
+        return switch (action) {
+            case PREVIOUS_SUGGESTION -> {
                 exitSearchIfActive();
-                if (commandSuggestions != null && commandSuggestions.isVisible()) {
-                    LOGGER.debug("C-p: navigating suggestions up");
-                    KeyEvent upEvent = new KeyEvent(GLFW.GLFW_KEY_UP, event.scancode(), modifiers & ~GLFW.GLFW_MOD_CONTROL);
-                    return commandSuggestions.keyPressed(upEvent);
-                } else {
-                    LOGGER.debug("C-p: previous history");
-                    moveInHistory(-1);
-                    return true;
-                }
+                LOGGER.debug("C-p: navigating suggestions up");
+                KeyEvent upEvent = new KeyEvent(GLFW.GLFW_KEY_UP, event.scancode(), modifiers & ~GLFW.GLFW_MOD_CONTROL);
+                yield commandSuggestions != null && commandSuggestions.keyPressed(upEvent);
             }
-            case GLFW.GLFW_KEY_N -> {
-                if (!Command.CTRL_N.isEnabled()) return null;
+            case NEXT_SUGGESTION -> {
                 exitSearchIfActive();
-                if (commandSuggestions != null && commandSuggestions.isVisible()) {
-                    LOGGER.debug("C-n: navigating suggestions down");
-                    KeyEvent downEvent = new KeyEvent(GLFW.GLFW_KEY_DOWN, event.scancode(), modifiers & ~GLFW.GLFW_MOD_CONTROL);
-                    return commandSuggestions.keyPressed(downEvent);
+                LOGGER.debug("C-n: navigating suggestions down");
+                KeyEvent downEvent = new KeyEvent(GLFW.GLFW_KEY_DOWN, event.scancode(), modifiers & ~GLFW.GLFW_MOD_CONTROL);
+                yield commandSuggestions != null && commandSuggestions.keyPressed(downEvent);
+            }
+            case PREVIOUS_HISTORY -> {
+                exitSearchIfActive();
+                LOGGER.debug("C-p: previous history");
+                moveInHistory(-1);
+                yield true;
+            }
+            case NEXT_HISTORY -> {
+                exitSearchIfActive();
+                LOGGER.debug("C-n: next history");
+                moveInHistory(1);
+                yield true;
+            }
+            case ENTER_SEARCH_BACKWARD -> {
+                LOGGER.debug("C-r: entering search mode");
+                enterSearchMode();
+                yield true;
+            }
+            case ENTER_SEARCH_FORWARD -> {
+                LOGGER.debug("C-s: entering search mode");
+                enterSearchMode();
+                yield true;
+            }
+            case CANCEL_OR_CLOSE -> {
+                if (SelectionHelper.clearSelectionOrMark(input)) {
+                    LOGGER.debug("C-g: cleared selection/mark");
                 } else {
-                    LOGGER.debug("C-n: next history");
-                    moveInHistory(1);
-                    return true;
-                }
-            }
-            case GLFW.GLFW_KEY_R -> {
-                if (!Command.CTRL_R.isEnabled()) return null;
-                if (!historySearch.isActive()) {
-                    LOGGER.debug("C-r: entering search mode");
-                    enterSearchMode();
-                }
-                return true;
-            }
-            case GLFW.GLFW_KEY_S -> {
-                if (!Command.CTRL_S.isEnabled()) return null;
-                if (!historySearch.isActive()) {
-                    LOGGER.debug("C-s: entering search mode");
-                    enterSearchMode();
-                }
-                return true;
-            }
-            case GLFW.GLFW_KEY_G -> {
-                if (!Command.CTRL_G.isEnabled()) return null;
-                if (!historySearch.isActive()) {
-                    if (SelectionHelper.clearSelectionOrMark(input)) {
-                        LOGGER.debug("C-g: cleared selection/mark");
-                        return true;
-                    }
                     LOGGER.debug("C-g: closing chat");
                     Minecraft.getInstance().setScreen(null);
-                    return true;
                 }
+                yield true;
             }
-        }
-        return null;
+            case NONE -> false;
+        };
     }
 
     @Inject(method = "render", at = @At("TAIL"))
@@ -171,22 +157,13 @@ public abstract class ChatScreenMixin {
             return;
         }
 
-        SearchState state = historySearch.getState();
-        String indicator = buildIndicator(state);
+        String indicator = ChatSearchUi.indicator(historySearch.getState());
 
         var font = Minecraft.getInstance().font;
         int x = input.getX();
         int y = input.getY() - font.lineHeight - 2;
 
         graphics.drawString(font, indicator, x, y, 0xFFFFFFFF, true);
-    }
-
-    @Unique
-    private String buildIndicator(SearchState state) {
-        String type = (state.hasMatches() || state.query().isEmpty())
-                ? "bck-i-search"
-                : "failing bck-i-search";
-        return type + ": " + state.query();
     }
 
     @Unique
@@ -223,10 +200,10 @@ public abstract class ChatScreenMixin {
 
     @Unique
     private List<String> getSearchHistory(String currentInput) {
-        if (currentInput.startsWith("/")) {
-            java.util.Collection<String> commands = Minecraft.getInstance().commandHistory().history();
-            return commands instanceof List<String> list ? list : new java.util.ArrayList<>(commands);
-        }
-        return Minecraft.getInstance().gui.getChat().getRecentChat();
+        return ChatSearchUi.historyForInput(
+            currentInput,
+            () -> Minecraft.getInstance().commandHistory().history(),
+            () -> Minecraft.getInstance().gui.getChat().getRecentChat()
+        );
     }
 }
