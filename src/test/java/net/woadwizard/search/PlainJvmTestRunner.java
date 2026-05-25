@@ -3,6 +3,7 @@ package net.woadwizard.search;
 import net.woadwizard.UndoManager;
 import net.woadwizard.config.CommandLookupTest;
 import net.woadwizard.emacs.GraphemeUtils;
+import net.woadwizard.emacs.SignLineNavigationTest;
 import net.woadwizard.emacs.TextFieldAdapter;
 import net.woadwizard.emacs.TextInputEventHandlerTest;
 import net.woadwizard.emacs.TextOperations;
@@ -31,6 +32,7 @@ public final class PlainJvmTestRunner {
         testHistorySearchCaseSensitiveMatching();
         testHistorySearchReusesLastQuery();
         failures.addAll(CommandLookupTest.run());
+        failures.addAll(SignLineNavigationTest.run());
         failures.addAll(TextInputEventHandlerTest.run());
 
         if (!failures.isEmpty()) {
